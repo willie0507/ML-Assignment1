@@ -1,4 +1,4 @@
-from skimage import io
+from skimage import io, transform
 import numpy as np
 import os
 
@@ -14,7 +14,7 @@ SAD = np.sum(z)
 SSD = np.sum(z**2)
 print(SAD, SSD)
 '''
-train_data = []
+train_data = []  # (feature, label)
 test_data = []
 
 for root, dirs, files in os.walk(r"..\CroppedYale"):
@@ -29,4 +29,6 @@ for root, dirs, files in os.walk(r"..\CroppedYale"):
             train_data.append((f, f[5:7]))
         else:
             test_data.append(f)
+        img = io.imread(os.path.join(root, f))
+        img = transform.resize(img, (224, 224), mode='constant')  # resize all images
         count += 1
