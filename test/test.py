@@ -3,18 +3,6 @@ import numpy as np
 from os import walk
 from os.path import join
 
-'''
-im1 = io.imread('1.pgm')
-im2 = io.imread('2.pgm')
-
-x = np.array(im1)
-y = np.array(im2)
-z = abs(x/100 - y/100)
-z = z*100
-SAD = np.sum(z)
-SSD = np.sum(z**2)
-print(SAD, SSD)
-'''
 train_data = []  # (feature, label)
 test_data = []
 test_data_SAD = []
@@ -31,7 +19,6 @@ for root, dirs, files in walk(r"../CroppedYale"):
         if f[-3:] != "pgm":  # Ignore files are not in .pgm format
             continue
         img = io.imread(join(root, f))  # Read image
-        img = transform.resize(img, (224, 224), mode='constant')  # Resize image
         img = color.rgb2gray(img)  # Convert image to gray
         if not train_data_are_set:
             train_data.append((f, int(f[5:7])))  # Add file name and label
@@ -51,7 +38,17 @@ for i, test_image in enumerate(test_data_array):  # Calculate SAD, SSD
         SSD.append(np.sum(z**2))
     test_data_SAD.append((test_data[i], train_data[SAD.index(min(SAD))][1]))  # Find the minimum SAD
     test_data_SSD.append((test_data[i], train_data[SSD.index(min(SSD))][1]))  # Find the minimum SSD
-    # test_data[i] = (test_data[i], train_data[SAD.index(min(SAD))][1])
 
-for t_data in test_data:
-    print(t_data)
+result = 0
+for t_data in test_data_SAD:  # Calculate SAD Acc
+    if t_data[1] == int(t_data[0][5:7]):
+        result += 1
+
+print("SAD Acc: ", result/len(test_data))
+
+result = 0
+for t_data in test_data_SSD:  # Calculate SSD Acc
+    if t_data[1] == int(t_data[0][5:7]):
+        result += 1
+
+print("SSD Acc: ", result/len(test_data))
