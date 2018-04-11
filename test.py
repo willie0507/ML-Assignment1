@@ -16,30 +16,29 @@ for root, dirs, files in walk(r"CroppedYale"):
             continue
         img = io.imread(join(root, f))  # Read image
         img = color.rgb2gray(img)  # Convert image to gray
-        if not train_data_are_set:
-            train_data.append((f, np.array(img), int(f[5:7])))  # Add file name, nd-array form and label
-        else:
-            test_data.append((f, np.array(img), (None, None)))  # Add file name, nd-array form and spaces for label
+        if not train_data_are_set:  # Add file name, nd-array form and label
+            train_data.append((f, np.array(img, dtype=float), int(f[5:7])))
+        else:  # Add file name, nd-array form and spaces for label
+            test_data.append((f, np.array(img, dtype=float), (None, None)))
         count += 1
-
-for test_image in test_data:  # Calculate SAD, SSD
-    SAD = []
-    SSD = []
-    for train_image in train_data:
-        z = abs(train_image[1]/100 - test_image[1]/100)
-        z = z*100
-        SAD.append(np.sum(z))
-        SSD.append(np.sum(z**2))
-    # Find minimum SAD, SSD
-    test_image = (test_image, (train_data[SAD.index(min(SAD))][2], train_data[SSD.index(min(SSD))][2]))
 
 SAD_result = 0
 SSD_result = 0
-for t_data in test_data:  # Calculate SAD Acc
-    if t_data[1][0] == int(t_data[0][5:7]):
-        SAD_result += 1
-    if test_data[1][1] == int(t_data[0][5:7]):
-        SSD_result += 1
 
-print("SAD Acc: ", SAD_result/len(test_data))
-print("SSD Acc: ", SSD_result/len(test_data))
+for i, test_image in enumerate(test_data):  # Calculate SAD, SSD
+    SAD, SSD = [], []
+    for train_image in train_data:
+        z = abs(train_image[1] - test_image[1])
+        SAD.append(np.sum(z))
+        SSD.append(np.sum(z ** 2))
+    # Find minimum SAD, SSD
+    test_image = (test_image[0], (train_data[SAD.index(min(SAD))][2], train_data[SSD.index(min(SSD))][2]))
+    if test_image[1][0] == int(test_image[0][5:7]):
+        SAD_result += 1
+    print("SAD Accuracy: ", round((SAD_result / (i+1)) * 100), "%")  # Accuracy of SAD classification
+    if test_image[1][1] == int(test_image[0][5:7]):
+        SSD_result += 1
+    print("SSD Accuracy: ", round((SSD_result / (i+1)) * 100), "%")  # Accuracy of SSD classification
+
+print("Final SAD accuracy: ", round((SAD_result / len(test_data)) * 100), "%")
+print("Final SSD accuracy: ", round((SSD_result / len(test_data)) * 100), "%")
